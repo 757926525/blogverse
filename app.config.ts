@@ -30,9 +30,6 @@ const env = {
   // App branding - update these values directly (do not use env vars)
   appName: "博客",
   appSlug: "blogverse",
-  // S3 URL of the app logo - set this to the URL returned by generate_image when creating custom logo
-  // Leave empty to use the default icon from assets/images/icon.png
-  logoUrl: "",
   scheme: schemeFromBundleId,
   iosBundleId: bundleId,
   androidPackage: bundleId,
@@ -59,7 +56,8 @@ const publicRuntime = {
   apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
 };
 
-const config: ExpoConfig = {
+const config: ExpoConfig & { logoUrl: string } = {
+  logoUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/310519664053648982/TdpZrDqPQqlKyCaT.png",
   name: env.appName,
   slug: env.appSlug,
   version: "1.0.0",
@@ -77,7 +75,7 @@ const config: ExpoConfig = {
   },
   android: {
     adaptiveIcon: {
-      backgroundColor: "#E6F4FE",
+      backgroundColor: "#0B2254",
       foregroundImage: "./assets/images/android-icon-foreground.png",
       backgroundImage: "./assets/images/android-icon-background.png",
       monochromeImage: "./assets/images/android-icon-monochrome.png",
