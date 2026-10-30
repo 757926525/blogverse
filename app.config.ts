@@ -141,6 +141,7 @@ const config: ExpoConfig & { logoUrl: string } = {
     ],
   ],
   experiments: {
+    baseUrl: process.env.EXPO_BASE_URL ?? "",
     typedRoutes: true,
     reactCompiler: true,
   },

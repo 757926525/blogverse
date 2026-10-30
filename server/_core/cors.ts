@@ -31,6 +31,19 @@ export function trustedExpoWebOrigins(): Set<string> {
   const origins = new Set<string>();
   const packager = configuredOrigin("EXPO_PACKAGER_PROXY_URL");
   const preview = configuredOrigin("EXPO_WEB_PREVIEW_URL");
+  const configuredPublicOrigins = process.env.ALLOWED_WEB_ORIGINS ?? "";
+  for (const candidate of configuredPublicOrigins.split(",")) {
+    const value = candidate.trim();
+    if (!value) continue;
+    try {
+      const url = new URL(value);
+      if ((url.protocol === "https:" || url.protocol === "http:") && url.origin === value) {
+        origins.add(value);
+      }
+    } catch {
+      // Ignore malformed values; an origin must be an exact scheme/host/port, not a URL path.
+    }
+  }
   // Loopback origins are request-local below. Never put one in this process-wide set: the
   // same starter can also be reached through a remote API host.
   for (const configured of [packager, preview]) {

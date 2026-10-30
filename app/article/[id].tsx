@@ -1,11 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-
 import { Avatar, BrandMark } from "@/components/blog/blog-ui";
+import { articles } from "@/lib/blog-data";
 import { useBlogStore } from "@/lib/blog-store";
-
 const ink = "#18233F";
+
+export function generateStaticParams() {
+  return articles.map((article) => ({ id: article.id }));
+}
 
 export default function ArticleScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

@@ -24,6 +24,16 @@ components/blog/       # 可复用的文章卡、标签、阅读进度、品牌�
 lib/blog-data.ts       # 文章、作者、专题演示数据
 lib/blog-store.tsx     # 收藏、点赞、搜索、阅读状态的 Context
 assets/images/         # 原创移动端图标与启动资源
+scripts/               # Web 静态导出与可上传部署包
+.github/workflows/     # 可选的 GitHub Pages 构建发布
+server/                # 可选 Express/tRPC API
+Dockerfile.api         # 独立 Node API 容器入口
+.env.example           # 空值环境变量模板，不含真实密钥
+README.md              # 项目简介、环境变量与部署说明
+wrangler.jsonc         # Cloudflare Pages 项目配置
+netlify.toml           # Netlify 构建配置
+vercel.json            # Vercel 静态站点配置
+eas.json               # Android/iOS EAS 构建配置
 ```
 
 ## 设计方向
@@ -52,3 +62,10 @@ assets/images/         # 原创移动端图标与启动资源
 ## 范围说明
 
 本次交付为功能完整的本地内容体验：文章、收藏、阅读进度、草稿与个人数据均为演示数据或本地 React 状态。后续若需要真实账号、多人发布、云端草稿与评论，可以利用已启用的项目服务与数据库将当前数据层替换为 API。
+
+## 部署与仓库交付（新增范围）
+
+- 保持 Manus `origin` 为当前应用的版本检查点仓库；移动项目不支持 canonical GitHub 切换。只有所有者明确授权后，才另建独立私有 GitHub 副本；副本不替换 Manus 主仓库。
+- 配置 Expo Web 静态导出命令，默认输出 `dist/`。Cloudflare Pages Git 集成（连接 GitHub 仓库、构建 `pnpm build:web`、发布 `dist`）是首选；同时说明 Dashboard Direct Upload 和 Wrangler CLI 上传，并生成可上传的 ZIP 包。
+- 提供 Netlify、Vercel、GitHub Pages 的静态 Web 配置；提供 EAS Android/iOS 原生构建 profile。各平台都说明适用场景、构建设置、路由/子路径限制和可执行步骤，不把静态 UI 部署误称为 Node API 部署。
+- README 准确区分客户端公开构建变量与后端运行时秘密；本地演示内容不依赖 API，认证/API 才需要单独部署 Express/tRPC、数据库与 OAuth 环境变量。

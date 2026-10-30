@@ -8,6 +8,7 @@ node_modules/
 # Expo
 .expo/
 dist/
+server-dist/
 web-build/
 expo-env.d.ts
 
@@ -33,6 +34,9 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+.env.*
+!.env.example
 .env*.local
 
 # typescript
@@ -61,6 +65,7 @@ Thumbs.db
 # Build files
 *.tgz
 *.tar.gz
+artifacts/*.zip
 .cache/
 
 # Webdev artifacts (checkpoint zips, migrations, etc.)

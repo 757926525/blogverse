@@ -1,0 +1,11 @@
+.git
+.expo
+node_modules
+dist
+server-dist
+artifacts
+.env
+.env.*
+!.env.example
+*.pem
+*.key

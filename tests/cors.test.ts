@@ -25,6 +25,7 @@ beforeEach(() => {
   // a platform URL cannot leak into a case that intentionally exercises only loopback data.
   vi.stubEnv("EXPO_PACKAGER_PROXY_URL", "");
   vi.stubEnv("EXPO_WEB_PREVIEW_URL", "");
+  vi.stubEnv("ALLOWED_WEB_ORIGINS", "");
 });
 
 afterEach(async () => {
@@ -73,6 +74,17 @@ describe("Mobile API origin and cookie isolation", () => {
     expect([...trustedExpoWebOrigins()].sort()).toEqual([
       "https://8081-sandbox.region.preview.example.test",
       "https://8328-sandbox.region.preview.example.test",
+    ]);
+  });
+
+  it("adds only exact origins from ALLOWED_WEB_ORIGINS", () => {
+    vi.stubEnv(
+      "ALLOWED_WEB_ORIGINS",
+      " https://blog.example.test, https://preview.example.test:8443, https://bad.example.test/path, javascript:alert(1) ",
+    );
+    expect([...trustedExpoWebOrigins()].sort()).toEqual([
+      "https://blog.example.test",
+      "https://preview.example.test:8443",
     ]);
   });
 
