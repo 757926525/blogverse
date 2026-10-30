@@ -10,6 +10,6 @@
 
 - [x] **可运行交付**：保持 Expo Router/React Native/TypeScript starter 结构，启用 TypeScript 诊断，项目通过类型检查与 lint；启动 Metro 和 API 监听器并在移动尺寸 Preview 中检查主阅读界面。
 
-- [ ] **GitHub 仓库与项目说明**：将完整项目保存到 GitHub 私有仓库，并保留当前 Manus 版本仓库；在仓库 README 写明项目简介、功能范围、本地安装/运行方式、静态 Web 与原生应用的交付边界，以及所有构建期公开变量和服务端运行时变量。明确标示哪些变量会被嵌入客户端、哪些是必须仅存于后端的秘密。
+- [x] **GitHub 仓库与项目说明**：将完整项目保存到 GitHub 私有仓库，并保留当前 Manus 版本仓库；在仓库 README 写明项目简介、功能范围、本地安装/运行方式、静态 Web 与原生应用的交付边界，以及所有构建期公开变量和服务端运行时变量。明确标示哪些变量会被嵌入客户端、哪些是必须仅存于后端的秘密。
 
 - [x] **多平台部署实现与指南**：首选 Cloudflare Pages 连接 GitHub 的 pull/自动构建部署，并给出仓库设置、构建命令和输出目录；实现 Expo Web 静态导出及 ZIP 上传包生成命令，说明如何取得 `dist/` 和 ZIP、如何在 Pages Direct Upload 上传，并给出 Wrangler 上传命令及 Direct Upload 与 Git integration 的适用/限制说明。提供 Netlify、Vercel、GitHub Pages 静态部署配置或可直接采用的工作流，并提供 Expo EAS Android/iOS 构建配置和分发步骤；准确说明动态路由、子路径与独立后端 API 的限制。
