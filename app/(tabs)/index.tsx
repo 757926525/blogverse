@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -73,7 +74,12 @@ export default function DiscoverScreen() {
           <Text style={styles.sectionTitle}>继续阅读</Text>
           <Text style={styles.sectionMeta}>{readIds.length + 1} 篇在读</Text>
         </View>
-        <Pressable style={({ pressed }) => [styles.continueCard, pressed && styles.pressed]} accessibilityRole="button">
+        <Pressable
+          style={({ pressed }) => [styles.continueCard, pressed && styles.pressed]}
+          accessibilityRole="button"
+          accessibilityLabel={`继续阅读：${articles[0].title}`}
+          onPress={() => router.push({ pathname: "/article/[id]", params: { id: articles[0].id } })}
+        >
           <View style={styles.continueAccent} />
           <View style={styles.continueContent}>
             <Text style={styles.continueKicker}>LAST READ · 42%</Text>
@@ -103,7 +109,12 @@ export default function DiscoverScreen() {
               <Text style={styles.sectionTitle}>编辑精选</Text>
               <Text style={styles.sectionMeta}>本周推荐</Text>
             </View>
-            <View style={[styles.featuredCard, { backgroundColor: featuredArticle.accent }]}> 
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`阅读编辑精选：${featuredArticle.title}`}
+              onPress={() => router.push({ pathname: "/article/[id]", params: { id: featuredArticle.id } })}
+              style={({ pressed }) => [styles.featuredCard, { backgroundColor: featuredArticle.accent }, pressed && styles.pressed]}
+            >
               <View style={styles.featuredTopRow}>
                 <View style={styles.featuredPill}><Text style={styles.featuredPillText}>FEATURED</Text></View>
                 <Ionicons name="sparkles" size={18} color="#FFFFFF" />
@@ -114,7 +125,7 @@ export default function DiscoverScreen() {
                 <View style={styles.featuredAuthor}><Avatar name={featuredArticle.author.initials} tone="#FFFFFF44" size={27} /><Text style={styles.featuredAuthorText}>{featuredArticle.author.name} · {featuredArticle.duration}</Text></View>
                 <Text style={styles.featuredArrow}>↗</Text>
               </View>
-            </View>
+            </Pressable>
           </>
         ) : null}
 

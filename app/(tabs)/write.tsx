@@ -4,15 +4,25 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-
 
 import { TopicPill } from "@/components/blog/blog-ui";
 import type { Topic } from "@/lib/blog-data";
-import { useBlogStore } from "@/lib/blog-store";
+import { useBlogStore, type BlogDraft } from "@/lib/blog-store";
 
 const ink = "#18233F";
 const writableTopics: Exclude<Topic, "全部">[] = ["工作", "生活", "科技", "设计"];
 
 export default function WriteScreen() {
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [topic, setTopic] = useState<Exclude<Topic, "全部">>("生活");
+  const { draft, isDraftLoaded } = useBlogStore();
+
+  if (!isDraftLoaded) {
+    return <View style={styles.loading}><Text style={styles.loadingText}>正在恢复草稿…</Text></View>;
+  }
+
+  return <WriteEditor key={draft?.savedAt ?? "new-draft"} initialDraft={draft} />;
+}
+
+function WriteEditor({ initialDraft }: { initialDraft: BlogDraft | null }) {
+  const [title, setTitle] = useState(initialDraft?.title ?? "");
+  const [body, setBody] = useState(initialDraft?.body ?? "");
+  const [topic, setTopic] = useState<Exclude<Topic, "全部">>(initialDraft?.topic ?? "生活");
   const [mode, setMode] = useState<"edit" | "preview">("edit");
   const { saveDraft, draftSavedAt } = useBlogStore();
   const wordCount = useMemo(() => title.trim().length + body.trim().length, [body, title]);
@@ -22,7 +32,7 @@ export default function WriteScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <View><Text style={styles.eyebrow}>NEW NOTE</Text><Text style={styles.title}>写点什么</Text></View>
-          <Pressable onPress={saveDraft} accessibilityRole="button" style={({ pressed }) => [styles.saveButton, pressed && styles.pressed]}>
+          <Pressable onPress={() => saveDraft({ title, body, topic })} accessibilityRole="button" style={({ pressed }) => [styles.saveButton, pressed && styles.pressed]}>
             <Ionicons name="cloud-upload-outline" size={18} color="#2E5BFF" />
             <Text style={styles.saveText}>保存草稿</Text>
           </Pressable>
@@ -43,7 +53,7 @@ export default function WriteScreen() {
               {writableTopics.map((item) => <TopicPill key={item} topic={item} selected={topic === item} onPress={() => setTopic(item)} />)}
             </ScrollView>
             <TextInput value={body} onChangeText={setBody} placeholder="从一个真切的瞬间开始……" placeholderTextColor="#A1A9B8" style={styles.bodyInput} multiline textAlignVertical="top" maxLength={3000} />
-            <View style={styles.editorFooter}><Text style={styles.wordCount}>{wordCount} 字</Text><Text style={styles.editorHint}>自动保存在本地</Text></View>
+            <View style={styles.editorFooter}><Text style={styles.wordCount}>{wordCount} 字</Text><Text style={styles.editorHint}>点按上方保存草稿</Text></View>
           </View>
         ) : (
           <View style={styles.previewCard}>
@@ -64,6 +74,8 @@ export default function WriteScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#F7F8FC" },
+  loading: { flex: 1, backgroundColor: "#F7F8FC", alignItems: "center", justifyContent: "center" },
+  loadingText: { color: "#7E899E", fontSize: 13, fontWeight: "700" },
   content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 28 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   eyebrow: { color: "#8D97AB", fontSize: 10, fontWeight: "900", letterSpacing: 1.1 },
