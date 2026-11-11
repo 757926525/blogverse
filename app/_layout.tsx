@@ -17,6 +17,7 @@ import {
 import type { EdgeInsets, Metrics, Rect } from "react-native-safe-area-context";
 
 import { BlogProvider } from "@/lib/blog-store";
+import { GlobalBackgroundContainer } from "@/components/blog/global-background";
 import { trpc, createTRPCClient } from "@/lib/trpc";
 import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-runtime";
 
@@ -62,11 +63,13 @@ export default function RootLayout() {
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <BlogProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="article/[id]" />
-              <Stack.Screen name="oauth/callback" />
-            </Stack>
+            <GlobalBackgroundContainer>
+              <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "transparent" } }}>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="article/[id]" />
+                <Stack.Screen name="oauth/callback" />
+              </Stack>
+            </GlobalBackgroundContainer>
             <StatusBar style="dark" />
           </BlogProvider>
         </QueryClientProvider>

@@ -25,6 +25,7 @@ export interface Article {
   accent: string;
   accentSoft: string;
   coverIndex: string;
+  images?: string[]; // Multiple local illustration Base64 data URLs
   sections: ArticleSection[];
 }
 
