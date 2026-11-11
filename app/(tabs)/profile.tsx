@@ -26,6 +26,9 @@ export default function ProfileScreen() {
     adminLogout,
     changeAdminPassword,
     siteName,
+    syncStatus,
+    syncMessage,
+    syncWithCloud,
     setSiteName,
     userAvatar,
     setUserAvatar,
@@ -254,6 +257,27 @@ export default function ProfileScreen() {
             </View>
           </View>
 
+          {/* Cloud Sync (D1 / KV) */}
+          <Pressable
+            onPress={() => void syncWithCloud()}
+            style={[styles.settingRow, { borderBottomColor: theme.border }]}
+          >
+            <View style={styles.settingLeft}>
+              <Ionicons
+                name={syncStatus === "syncing" ? "sync" : syncStatus === "success" ? "cloud-done-outline" : "cloud-upload-outline"}
+                size={19}
+                color={syncStatus === "error" ? "#EF4444" : theme.primary}
+              />
+              <View style={{ flex: 1, paddingRight: 8 }}>
+                <Text style={[styles.settingTitle, { color: theme.text }]}>云端数据同步</Text>
+                <Text style={[styles.settingSub, { color: theme.subText }]}>
+                  {syncMessage || "连接 Cloudflare D1 / KV 同步文章与设置"}
+                </Text>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.subText} />
+          </Pressable>
+
           {/* Change Admin Password */}
           {isAdmin ? (
             <Pressable
@@ -401,7 +425,7 @@ export default function ProfileScreen() {
               secureTextEntry
               value={inputPassword}
               onChangeText={setInputPassword}
-              placeholder="请输入管理员密码"
+              placeholder="请输入管理员密码（默认 123456）"
               placeholderTextColor="#A0AEC0"
               style={[styles.modalInput, { color: theme.text, borderColor: theme.border }]}
               autoFocus

@@ -1,46 +1,100 @@
-# 博客移动应用
+# 文字星球 (Blogverse) - 极简高颜值博客与创作平台
 
-一个以移动阅读和轻量创作为核心的中文博客示例。应用提供发现、收藏、创作和个人四个主入口，包含文章专题筛选、搜索、精选文章、阅读详情、点赞/收藏状态以及本机草稿恢复。内容目前是随仓库交付的演示数据；收藏、点赞、已读与草稿状态保存在本机，不依赖登录或线上内容 API。
+一款以优雅阅读与轻量创作为核心的现代博客应用。支持全端响应式访问（移动端体验原生流畅，桌面端优雅自洽）。
 
-## 技术与目录
+---
 
-项目使用 Expo SDK、Expo Router、React Native、TypeScript、NativeWind，并保留可选的 Express/tRPC/Drizzle API starter。`app/` 是移动页面和路由，`lib/blog-data.ts` 保存演示文章，`lib/blog-store.tsx` 管理本地状态，`assets/images/` 保存应用品牌资源。`server/` 与 `drizzle/` 属于可选后端，并不是静态博客演示页的运行前置条件。
+## ✨ 核心特色功能
 
-## 本地开发
+1. **🎨 10 套精选主题风格自由切换**
+   - 内置包含「经典水墨」、「温暖纸质」、「暮色暗黑」、「竹青翠绿」、「初晓珊瑚」、「迷雾幽兰」、「赛博霓虹」、「秋日暖杏」、「极简黑白」、「蔚蓝海洋」等十款独具美感的设计主题。
+   - 切换主题时，全站背景色、卡片质感、文字排版、强调色与标签色彩实时协同联动，带来沉浸式体验。
 
-需要 Node.js 22 与 pnpm 9.12.0。推荐用 Corepack 固定包管理器版本：
+2. **⏰ 实时网络时钟与世界时区选择**
+   - 首页顶栏与设置面板集成高精度跳秒网络时钟，支持北京（Asia/Shanghai）、东京、伦敦、纽约、洛杉矶、悉尼等 8 个全球主要时区自由切换。
+
+3. **🖼️ 自定义背景壁纸与个人头像**
+   - 一键选取本地高清图片设为博客全局背景壁纸，自带雅致半透明遮罩与阅读保护层。
+   - 支持本地图片替换个人头像、随时自定义站点与个人主页标题。
+
+4. **✍️ 强大的文章发布、编辑与配图管理**
+   - 支持本地批量多图上传，自动转为高清晰度格式持久化保存，文章内附带图片画廊无缝横滑浏览。
+   - 支持创建新文章、在线二次修改编辑与安全删除（带确认防误触机制）。
+   - 内置写作草稿保护机制，离开页面后草稿自动保存，防止文字丢失。
+
+5. **🔐 管理员身份鉴权与访客保护**
+   - **普通访客模式**：安全只读体验，可浏览、收藏喜欢的文章、点赞互动与阅读进度记录。
+   - **管理员登录**：解锁文章发布、编辑修改与删除等高级权限；可在设置中随时修改新密码。
+   - **密码环境变量配置**：变量名为 `PASSWORD`，默认密码为 `123456`。
+
+6. **☁️ Cloudflare D1 数据库、R2 存储桶与 KV 同步（优先 D1 + R2）**
+   - 内置 Cloudflare Pages Functions (`/api/sync` 与 `/api/upload`)。
+   - 支持一键连接 Cloudflare D1 分布式 SQL 数据库持久存储文章与设置，并支持 R2 对象存储桶持久化托管图片资源。
+
+---
+
+## 🔑 环境变量说明
+
+| 变量名称 | 默认值 | 作用说明 |
+| :--- | :--- | :--- |
+| **`PASSWORD`** | `123456` | **管理员登录口令**。在部署平台的环境变量中添加此变量后，直接使用此密码登录管理员后台。 |
+| `EXPO_PUBLIC_PASSWORD` | `123456` | 兼容变量名，作用同 `PASSWORD`。 |
+| `EXPO_BASE_URL` | 留空 | 子路径部署参数（如 GitHub Pages 需设置为 `/仓库名`；Cloudflare Pages / Vercel 留空）。 |
+
+---
+
+## 🚀 极速部署指南
+
+### 首选推荐：Cloudflare Pages 一键托管（免运维）
+
+1. **导入代码仓库**：
+   - 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)，进入 **Workers 和 Pages** -> **创建应用程序** -> **Pages** -> **连接到 Git**。
+   - 授权并选择此 GitHub 代码仓库。
+
+2. **构建参数配置**：
+   - **框架预设**：选择 `None` / `其他`
+   - **构建命令**：`pnpm build:web`
+   - **构建输出目录**：`dist`
+   - **环境变量**：添加变量 `PASSWORD`，值为您的专属管理员密码（例如 `mySecret2025`）。如果不设置，默认为 `123456`。
+
+3. **点击「保存并部署」**：
+   - 构建完成后，Cloudflare Pages 会提供一个免费的 `*.pages.dev` 访问域名。
+
+### 连接 Cloudflare D1 数据库与 R2 存储桶（可选云端同步）
+
+1. **创建 D1 数据库**：
+   - 在 Cloudflare 控制台左侧点击 **D1 SQL Database** -> **创建数据库**，名称填写 `blog-db`。
+   - 进入控制台或执行命令运行数据库初始化：
+     ```bash
+     pnpm dlx wrangler d1 execute blog-db --file=./migrations/0001_d1_init.sql
+     ```
+   - 在 Pages 项目的 **设置 -> 函数 -> D1 数据库绑定** 中添加绑定：
+     - 变量名称：`DB`
+     - 选择数据库：`blog-db`
+
+2. **创建 R2 存储桶**：
+   - 在控制台左侧点击 **R2 对象存储** -> **创建存储桶**，名称填写 `blog-bucket`。
+   - 在 Pages 项目的 **设置 -> 函数 -> R2 存储桶绑定** 中添加绑定：
+     - 变量名称：`BUCKET`
+     - 选择存储桶：`blog-bucket`
+
+3. **进入博客前端**：
+   - 打开个人中心页面，点击「云端数据同步」，系统将自动完成本地文章与云端 D1 / R2 的双向同步。
+
+---
+
+## 💻 本地运行与开发
 
 ```bash
-corepack enable
-pnpm install --frozen-lockfile
+# 1. 安装依赖
+pnpm install
+
+# 2. 启动本地开发服务（Metro 运行在 8081 端口）
 pnpm dev
+
+# 3. 本地全量代码检查与测试
+pnpm check   # TypeScript 类型校验
+pnpm lint    # 代码风格检查
+pnpm test    # Vitest 自动化单元测试
+pnpm build:web # 导出静态 Web 站点到 dist/
 ```
-
-Metro/Web 使用端口 `8081`，可选 API 服务使用 `3000`。常用检查命令：
-
-```bash
-pnpm check
-pnpm lint
-pnpm test
-pnpm build:web
-```
-
-`pnpm build:web` 会将 Expo Router 静态站点导出到 `dist/`。`pnpm package:web` 会构建并生成 `artifacts/blogverse-pages.zip`，适合下载或上传；本地构建产物默认被 Git 忽略。
-
-## 首选部署：Cloudflare Pages
-
-最省事的自动更新方式是将 GitHub 仓库连接到 Cloudflare Pages。每次推送到生产分支后，Pages 自动拉取源码、运行 `pnpm build:web` 并发布 `dist/`。连接步骤、环境变量、静态包获取方式和手动上传命令见[部署指南](DEPLOYMENT.md)。
-
-需要了解 Vercel、Netlify、GitHub Pages、Android/iOS 原生构建或可选 API 部署，请看[多平台部署指南](DEPLOYMENT.md)。
-
-## 配置与安全
-
-纯演示版不需要构建变量。启用登录或独立 API 时，浏览器/应用构建参数与后端运行秘密必须分开设置；所有 `EXPO_PUBLIC_*` 变量都会进入客户端产物，不能放令牌、数据库密码或私钥。安全的占位模板在[`.env.example`](.env.example)，完整用途和平台变量配置见[构建变量说明](DEPLOYMENT.md#构建变量和秘密)。
-
-客户端构建变量：`EXPO_PUBLIC_API_BASE_URL`、`MANUS_PROJECT_ID`、`MANUS_OAUTH_PORTAL_URL`、`MANUS_OAUTH_API_URL`、`OWNER_OPEN_ID`、`OWNER_NAME`、`EXPO_BASE_URL`；除部署路径外，这些值会进入客户端代码。可选 API 服务运行变量：`DATABASE_URL`、`MANUS_JWT_SECRET`、`MANUS_PROJECT_ID`、`MANUS_OAUTH_API_URL`、`OWNER_OPEN_ID`、`ALLOWED_WEB_ORIGINS`、`PORT`、`BUILT_IN_FORGE_API_URL`、`BUILT_IN_FORGE_API_KEY`。数据库 DSN、JWT secret 和 Forge API key 仅放后端密钥配置；完整别名和逐平台设置见部署指南。
-
-## GitHub 仓库
-
-当前项目的主版本仓库仍由 Manus 管理。此移动项目不支持将 canonical 主仓库切换到 GitHub；如需 GitHub 版本，只能在明确授权后另存为私有副本，且副本不会替换 Manus 主仓库。当前自动发布处于关闭状态，推送 Manus 检查点不会自动发布网站；Cloudflare Pages Git 自动部署须由仓库所有者在 Cloudflare 中连接 GitHub 后才会生效。
-
-`dist/` 和生成 ZIP 不提交，因为它们可由固定命令重复构建。请先确认 GitHub 副本的可见性与 GitHub Pages 的公开发布行为，再决定是否启用公开静态站点。

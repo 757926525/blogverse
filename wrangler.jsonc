@@ -1,5 +1,24 @@
 {
   "name": "blogverse",
   "compatibility_date": "2026-10-30",
-  "pages_build_output_dir": "./dist"
+  "pages_build_output_dir": "./dist",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "blog-db",
+      "database_id": "YOUR_D1_DATABASE_ID_OPTIONAL"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "blog-bucket"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "YOUR_KV_NAMESPACE_ID_OPTIONAL"
+    }
+  ]
 }

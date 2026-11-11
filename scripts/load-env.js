@@ -36,6 +36,9 @@ if (fs.existsSync(envPath)) {
 // Map platform variables to Expo public variables. Canonical MANUS_* names win;
 // legacy aliases remain as fallbacks for older published environments.
 const mappings = [
+  ["PASSWORD", "EXPO_PUBLIC_PASSWORD"],
+  ["PASSWORD", "EXPO_PUBLIC_ADMIN_PASSWORD"],
+  ["ADMIN_PASSWORD", "EXPO_PUBLIC_ADMIN_PASSWORD"],
   ["MANUS_PROJECT_ID", "EXPO_PUBLIC_APP_ID"],
   ["MANUS_OAUTH_PORTAL_URL", "EXPO_PUBLIC_OAUTH_PORTAL_URL"],
   ["MANUS_OAUTH_API_URL", "EXPO_PUBLIC_OAUTH_SERVER_URL"],

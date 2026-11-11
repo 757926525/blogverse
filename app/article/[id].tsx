@@ -13,6 +13,15 @@ import {
 import { Avatar, BrandMark } from "@/components/blog/blog-ui";
 import { useBlogStore } from "@/lib/blog-store";
 
+export function generateStaticParams(): { id: string }[] {
+  return [
+    { id: "quiet-work" },
+    { id: "read-write" },
+    { id: "good-interface" },
+    { id: "small-systems" },
+  ];
+}
+
 export default function ArticleScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const {

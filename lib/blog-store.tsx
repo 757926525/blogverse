@@ -73,11 +73,20 @@ interface BlogStoreValue {
   setTimezone: (zone: string) => void;
   currentTimeString: string;
   currentDateString: string;
+
+  // Cloud Sync (D1 / KV)
+  syncStatus: "idle" | "syncing" | "success" | "error";
+  syncMessage: string | null;
+  syncWithCloud: () => Promise<boolean>;
 }
 
 const BlogStoreContext = createContext<BlogStoreValue | null>(null);
 
-const DEFAULT_ADMIN_PASSWORD = process.env.EXPO_PUBLIC_ADMIN_PASSWORD || "admin123";
+const DEFAULT_ADMIN_PASSWORD =
+  process.env.EXPO_PUBLIC_PASSWORD ||
+  process.env.EXPO_PUBLIC_ADMIN_PASSWORD ||
+  process.env.PASSWORD ||
+  "123456";
 
 export function BlogProvider({ children }: { children: ReactNode }) {
   // Articles
@@ -101,6 +110,10 @@ export function BlogProvider({ children }: { children: ReactNode }) {
   const [customBackground, setCustomBackgroundState] = useState<string | null>(null);
   const [themeId, setThemeIdState] = useState<string>("classic-ink");
   const [timezone, setTimezoneState] = useState<string>("Asia/Shanghai");
+
+  // Cloud Sync
+  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   // Live Time Clock
   const [now, setNow] = useState<Date>(new Date());
@@ -369,6 +382,60 @@ export function BlogProvider({ children }: { children: ReactNode }) {
     void AsyncStorage.setItem(STORAGE_KEYS.TIMEZONE, zone);
   };
 
+  const syncWithCloud = async (): Promise<boolean> => {
+    setSyncStatus("syncing");
+    setSyncMessage("正在与云端 D1/KV 同步...");
+    try {
+      // 1. Fetch cloud data
+      const getRes = await fetch("/api/sync");
+      if (getRes.ok) {
+        const getJson = await getRes.json();
+        if (getJson.ok && Array.isArray(getJson.articles) && getJson.articles.length > 0) {
+          // Merge or adopt cloud articles
+          setArticles(getJson.articles);
+          void AsyncStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(getJson.articles));
+        }
+      }
+
+      // 2. Push local articles to cloud if admin
+      if (isAdmin) {
+        const postRes = await fetch("/api/sync", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-password": adminPassword,
+          },
+          body: JSON.stringify({
+            articles,
+            config: {
+              siteName,
+              userAvatar,
+              themeId,
+              timezone,
+            },
+          }),
+        });
+
+        if (postRes.ok) {
+          const postJson = await postRes.json();
+          if (postJson.ok) {
+            setSyncStatus("success");
+            setSyncMessage(`已成功同步到云端 (${postJson.syncedTo})`);
+            return true;
+          }
+        }
+      }
+
+      setSyncStatus("success");
+      setSyncMessage("云端同步完成");
+      return true;
+    } catch (err: any) {
+      setSyncStatus("error");
+      setSyncMessage(err?.message || "连接云端同步接口失败");
+      return false;
+    }
+  };
+
   const value = useMemo<BlogStoreValue>(
     () => ({
       articles,
@@ -403,6 +470,9 @@ export function BlogProvider({ children }: { children: ReactNode }) {
       setTimezone,
       currentTimeString,
       currentDateString,
+      syncStatus,
+      syncMessage,
+      syncWithCloud,
     }),
     [
       articles,
@@ -421,6 +491,8 @@ export function BlogProvider({ children }: { children: ReactNode }) {
       timezone,
       currentTimeString,
       currentDateString,
+      syncStatus,
+      syncMessage,
     ],
   );
 
