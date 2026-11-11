@@ -159,6 +159,67 @@ export const articles: Article[] = [
       },
     ],
   },
+  {
+    id: "cloudflare-d1-r2-kv-guide",
+    title: "Cloudflare D1、R2与KV对接规范、绑定变量说明及扩展指南",
+    excerpt: "深入解析无服务器边缘架构：通过 D1 数据库、R2 对象存储与 KV 缓存构建坚固持久的高性能博客数据枢纽。",
+    topic: "科技",
+    author: { name: "架构团队", role: "系统与云基础设施", initials: "云", tone: "#E0F2FE" },
+    published: "精选专栏",
+    duration: "10 分钟",
+    readMinutes: 10,
+    likes: 628,
+    accent: "#0284C7",
+    accentSoft: "#E0F2FE",
+    coverIndex: "05",
+    sections: [
+      {
+        heading: "一、架构总览与边缘选型决策",
+        paragraphs: [
+          "在现代 Web 与移动博客应用中，纯前端静态应用具备部署敏捷、零服务器成本与全球 CDN 加速的极致体验。然而，当涉及用户自定义头像、文章跨设备漫游、主题配置与多图持久化时，引入轻量 Serverless 存储成为必然演进。",
+          "Cloudflare 开发者生态提供了三驾马车：D1（基于 SQLite 的分布式边缘 SQL 数据库）、R2（S3 兼容的高吞吐零出口带宽费对象存储桶）以及 KV（高频超低延迟分布式键值缓存）。本系统设计优先采用 D1 持久化结构化文章与站点配置，搭配 R2 永久托管高分辨率配图，KV 作为超高频读取的灵活备选。",
+        ],
+      },
+      {
+        heading: "二、Cloudflare D1 关系型数据库对接规范",
+        paragraphs: [
+          "1. 数据库创建：登录 Cloudflare Dashboard，在 Workers & Pages -> D1 中创建名称为 blog-db 的数据库。",
+          "2. 数据表模式：系统采用规范化结构与 JSON 文档扩展混合模式。表 articles 包含 id, title, topic, excerpt, data_json 与 updated_at 字段；表 site_config 存储全站主题、自定义头像 Base64、全局背景壁纸及偏好设置。",
+          "3. 绑定规范：在 Cloudflare Pages 项目的「设置」->「函数」->「D1 数据库绑定」中，变量名必须严格设置为大写 DB，关联数据库选择 blog-db。在服务端代码中即可通过 context.env.DB 顺畅执行预编译 SQL 查询与事务写入。",
+        ],
+      },
+      {
+        heading: "三、Cloudflare R2 存储桶图片托管与上传流转",
+        paragraphs: [
+          "1. 存储桶配置：在 R2 对象存储中创建名为 blog-bucket 的存储桶。在 Pages 项目函数设置中添加 R2 绑定，变量名称严格设置为大写 BUCKET。",
+          "2. 上传接口规范：Pages Functions 在 /api/upload 中接收来自文章编辑器或个人中心的图片数据。系统先校验管理员身份标头 x-admin-password，随后将二进制 Buffer 流直接调用 env.BUCKET.put() 存入存储桶，并生成全球可访问的持久化资源 URI。",
+          "3. 零成本高吞吐优势：相较于传统 AWS S3 等对象存储，Cloudflare R2 免除了昂贵的数据传出带宽费（Egress Fees），是大型图文博客高频读写的理想托管底座。",
+        ],
+      },
+      {
+        heading: "四、Cloudflare KV 轻量级缓存与双模兼容",
+        paragraphs: [
+          "1. 命名空间绑定：在 Cloudflare KV 控制台创建 BLOG_KV，绑定变量名填写大写 KV。",
+          "2. 容灾与极速降级：当生产环境尚未配置 D1 数据库时，系统自动优雅降级到 KV 键值存储模式，将全量文章与站点状态以序列化 JSON 写入 blog:articles 与 blog:config 键中，毫秒级全球边缘就近命中。",
+        ],
+      },
+      {
+        heading: "五、环境变量与鉴权变量绑定清单",
+        paragraphs: [
+          "1. PASSWORD：管理员总控登录口令，未配置时自动使用默认安全口令 123456。无论是静态导出构建还是 Pages Functions 运行时，系统均严密保护并进行统一映射校验。",
+          "2. EXPO_PUBLIC_PASSWORD：客户端构建兼容别名，注入前端用于离线密码比对校验。",
+          "3. EXPO_BASE_URL：子路径部署参数。域名根目录留空；GitHub Pages 项目站点填写 /<repository-name>。",
+        ],
+      },
+      {
+        heading: "六、开发演进与自定义业务扩展指南",
+        paragraphs: [
+          "本架构代码完全解耦、职责明晰：前端状态在 lib/blog-store.tsx 中统一管理；边缘函数在 functions/api/ 中独立提供接口；数据初始化 SQL 在 migrations/ 目录下版本化追踪。",
+          "当您需要扩展评论系统、文章分类标签打分或多作者协作权限时，只需在 0001_d1_init.sql 增加相应数据表，在 /api/ 目录下添加对应的 Pages Function，即可轻松实现全栈无服务器工业级博客系统！",
+        ],
+      },
+    ],
+  },
 ];
 
 export const featuredArticle = articles[2];

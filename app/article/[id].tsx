@@ -16,9 +16,10 @@ import { useBlogStore } from "@/lib/blog-store";
 export function generateStaticParams(): { id: string }[] {
   return [
     { id: "quiet-work" },
-    { id: "read-write" },
-    { id: "good-interface" },
     { id: "small-systems" },
+    { id: "good-interface" },
+    { id: "human-scale-ai" },
+    { id: "cloudflare-d1-r2-kv-guide" },
   ];
 }
 

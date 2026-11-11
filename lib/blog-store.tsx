@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { articles as initialArticles, type Article, type Topic } from "@/lib/blog-data";
+import { SupportedLanguage, TRANSLATIONS } from "@/lib/i18n";
 import { THEME_STYLES, TIMEZONES, type ThemeStyle, type TimezoneOption } from "@/lib/theme-presets";
 
 export interface BlogDraft {
@@ -25,6 +26,7 @@ const STORAGE_KEYS = {
   CUSTOM_BACKGROUND: "blogverse/custom_background_v2",
   THEME_ID: "blogverse/theme_id_v2",
   TIMEZONE: "blogverse/timezone_v2",
+  LANGUAGE: "blogverse/language_v2",
 };
 
 interface BlogStoreValue {
@@ -68,6 +70,11 @@ interface BlogStoreValue {
   theme: ThemeStyle;
   setThemeId: (id: string) => void;
 
+  // Language & i18n
+  language: SupportedLanguage;
+  setLanguage: (lang: SupportedLanguage) => void;
+  t: (key: string) => string;
+
   // Timezone & Live Network Time
   timezone: string;
   setTimezone: (zone: string) => void;
@@ -108,7 +115,8 @@ export function BlogProvider({ children }: { children: ReactNode }) {
   const [siteName, setSiteNameState] = useState("文字星球");
   const [userAvatar, setUserAvatarState] = useState("");
   const [customBackground, setCustomBackgroundState] = useState<string | null>(null);
-  const [themeId, setThemeIdState] = useState<string>("classic-ink");
+  const [themeId, setThemeIdState] = useState<string>("xuan-paper");
+  const [language, setLanguageState] = useState<SupportedLanguage>("zh-CN");
   const [timezone, setTimezoneState] = useState<string>("Asia/Shanghai");
 
   // Cloud Sync
@@ -142,6 +150,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
           storedBg,
           storedThemeId,
           storedTz,
+          storedLang,
         ] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEYS.ARTICLES),
           AsyncStorage.getItem(STORAGE_KEYS.SAVED_IDS),
@@ -155,6 +164,7 @@ export function BlogProvider({ children }: { children: ReactNode }) {
           AsyncStorage.getItem(STORAGE_KEYS.CUSTOM_BACKGROUND),
           AsyncStorage.getItem(STORAGE_KEYS.THEME_ID),
           AsyncStorage.getItem(STORAGE_KEYS.TIMEZONE),
+          AsyncStorage.getItem(STORAGE_KEYS.LANGUAGE),
         ]);
 
         if (savedArticles) {
@@ -208,6 +218,9 @@ export function BlogProvider({ children }: { children: ReactNode }) {
         if (storedTz) {
           setTimezoneState(storedTz);
         }
+        if (storedLang && (storedLang === "zh-CN" || storedLang === "zh-TW" || storedLang === "en-US" || storedLang === "ja-JP")) {
+          setLanguageState(storedLang as SupportedLanguage);
+        }
       } finally {
         setIsDraftLoaded(true);
       }
@@ -248,6 +261,16 @@ export function BlogProvider({ children }: { children: ReactNode }) {
     const found = THEME_STYLES.find((t) => t.id === themeId);
     return found || THEME_STYLES[0];
   }, [themeId]);
+
+  const t = useMemo(() => {
+    const dict = TRANSLATIONS[language] || TRANSLATIONS["zh-CN"];
+    return (key: string): string => dict[key] || TRANSLATIONS["zh-CN"][key] || key;
+  }, [language]);
+
+  const setLanguage = (lang: SupportedLanguage) => {
+    setLanguageState(lang);
+    void AsyncStorage.setItem(STORAGE_KEYS.LANGUAGE, lang);
+  };
 
   // Actions
   const createArticle = (newArt: Omit<Article, "id" | "published" | "duration" | "readMinutes" | "likes" | "coverIndex">) => {
@@ -384,20 +407,51 @@ export function BlogProvider({ children }: { children: ReactNode }) {
 
   const syncWithCloud = async (): Promise<boolean> => {
     setSyncStatus("syncing");
-    setSyncMessage("正在与云端 D1/KV 同步...");
+    setSyncMessage(t("syncingMsg"));
     try {
       // 1. Fetch cloud data
       const getRes = await fetch("/api/sync");
       if (getRes.ok) {
         const getJson = await getRes.json();
-        if (getJson.ok && Array.isArray(getJson.articles) && getJson.articles.length > 0) {
-          // Merge or adopt cloud articles
-          setArticles(getJson.articles);
-          void AsyncStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(getJson.articles));
+        if (getJson.ok) {
+          if (Array.isArray(getJson.articles) && getJson.articles.length > 0) {
+            setArticles(getJson.articles);
+            void AsyncStorage.setItem(STORAGE_KEYS.ARTICLES, JSON.stringify(getJson.articles));
+          }
+          if (getJson.config) {
+            if (getJson.config.siteName) {
+              setSiteNameState(getJson.config.siteName);
+              void AsyncStorage.setItem(STORAGE_KEYS.SITE_NAME, getJson.config.siteName);
+            }
+            if (getJson.config.userAvatar) {
+              setUserAvatarState(getJson.config.userAvatar);
+              void AsyncStorage.setItem(STORAGE_KEYS.USER_AVATAR, getJson.config.userAvatar);
+            }
+            if (getJson.config.customBackground !== undefined) {
+              setCustomBackgroundState(getJson.config.customBackground);
+              if (getJson.config.customBackground) {
+                void AsyncStorage.setItem(STORAGE_KEYS.CUSTOM_BACKGROUND, getJson.config.customBackground);
+              } else {
+                void AsyncStorage.removeItem(STORAGE_KEYS.CUSTOM_BACKGROUND);
+              }
+            }
+            if (getJson.config.themeId) {
+              setThemeIdState(getJson.config.themeId);
+              void AsyncStorage.setItem(STORAGE_KEYS.THEME_ID, getJson.config.themeId);
+            }
+            if (getJson.config.language) {
+              setLanguageState(getJson.config.language);
+              void AsyncStorage.setItem(STORAGE_KEYS.LANGUAGE, getJson.config.language);
+            }
+            if (getJson.config.timezone) {
+              setTimezoneState(getJson.config.timezone);
+              void AsyncStorage.setItem(STORAGE_KEYS.TIMEZONE, getJson.config.timezone);
+            }
+          }
         }
       }
 
-      // 2. Push local articles to cloud if admin
+      // 2. Push local articles & customization to cloud if admin
       if (isAdmin) {
         const postRes = await fetch("/api/sync", {
           method: "POST",
@@ -410,7 +464,9 @@ export function BlogProvider({ children }: { children: ReactNode }) {
             config: {
               siteName,
               userAvatar,
+              customBackground,
               themeId,
+              language,
               timezone,
             },
           }),
@@ -466,6 +522,9 @@ export function BlogProvider({ children }: { children: ReactNode }) {
       setCustomBackground,
       theme: currentTheme,
       setThemeId,
+      language,
+      setLanguage,
+      t,
       timezone,
       setTimezone,
       currentTimeString,
@@ -488,6 +547,8 @@ export function BlogProvider({ children }: { children: ReactNode }) {
       userAvatar,
       customBackground,
       currentTheme,
+      language,
+      t,
       timezone,
       currentTimeString,
       currentDateString,

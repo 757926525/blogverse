@@ -14,6 +14,7 @@ import {
 import { Avatar, BrandMark } from "@/components/blog/blog-ui";
 import { useBlogStore } from "@/lib/blog-store";
 import { pickLocalImages } from "@/lib/image-picker";
+import { LANGUAGE_OPTIONS, type SupportedLanguage } from "@/lib/i18n";
 import { THEME_STYLES, TIMEZONES } from "@/lib/theme-presets";
 
 export default function ProfileScreen() {
@@ -36,6 +37,9 @@ export default function ProfileScreen() {
     setCustomBackground,
     theme,
     setThemeId,
+    language,
+    setLanguage,
+    t,
     timezone,
     setTimezone,
     currentTimeString,
@@ -345,10 +349,40 @@ export default function ProfileScreen() {
           </ScrollView>
         </View>
 
+        {/* Language Selection */}
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t("languageSectionTitle")}</Text>
+          <Text style={[styles.sectionMeta, { color: theme.subText }]}>{t("languageSectionDesc")}</Text>
+        </View>
+
+        <View style={styles.langGrid}>
+          {LANGUAGE_OPTIONS.map((item) => {
+            const active = item.code === language;
+            return (
+              <Pressable
+                key={item.code}
+                onPress={() => setLanguage(item.code as SupportedLanguage)}
+                style={[
+                  styles.langCard,
+                  {
+                    backgroundColor: active ? theme.primary : theme.cardBg,
+                    borderColor: active ? theme.accent : theme.border,
+                    borderRadius: theme.borderRadius,
+                    borderWidth: active ? 2 : 1,
+                  },
+                ]}
+              >
+                <Text style={styles.langFlag}>{item.flag}</Text>
+                <Text style={[styles.langName, { color: active ? "#FFFFFF" : theme.text }]}>{item.name}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
         {/* 10+ Theme Styles Switcher */}
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>主题风格切换 (10种)</Text>
-          <Text style={[styles.sectionMeta, { color: theme.subText }]}>当前：{theme.name}</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t("themeSectionTitle")}</Text>
+          <Text style={[styles.sectionMeta, { color: theme.subText }]}>{theme.name} · {theme.tagline}</Text>
         </View>
 
         <View style={styles.themesGrid}>
@@ -363,7 +397,8 @@ export default function ProfileScreen() {
                   {
                     backgroundColor: item.background,
                     borderColor: active ? item.accent : item.border,
-                    borderWidth: active ? 2 : 1,
+                    borderWidth: active ? item.borderWidth + 1 : item.borderWidth,
+                    borderRadius: item.borderRadius,
                   },
                 ]}
               >
@@ -725,6 +760,12 @@ const styles = StyleSheet.create({
   themePaletteRow: { flexDirection: "row", gap: 5, marginBottom: 8 },
   colorDot: { width: 14, height: 14, borderRadius: 7 },
   themeCardName: { fontSize: 13, fontWeight: "800" },
+  themeCardDesc: { fontSize: 10, marginTop: 2 },
+  themeCheck: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+  },
   activeThemeCheck: {
     position: "absolute",
     right: 8,
@@ -734,6 +775,25 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     alignItems: "center",
     justifyContent: "center",
+  },
+  langGrid: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 16,
+  },
+  langCard: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  langFlag: {
+    fontSize: 20,
+    marginBottom: 4,
+  },
+  langName: {
+    fontSize: 11.5,
+    fontWeight: "700",
   },
 
   activityCard: {
